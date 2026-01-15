@@ -1,5 +1,7 @@
 # Axum + React TS Project
 
+![CI](https://github.com/<OWNER>/<REPOSITORY>/actions/workflows/ci.yml/badge.svg)
+
 This project consists of a Rust backend (Axum) and a React TypeScript frontend (Vite), orchestrated with Docker Compose.
 
 ## Structure

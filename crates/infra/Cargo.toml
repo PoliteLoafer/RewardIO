@@ -1,0 +1,11 @@
+[package]
+name = "rewardio-infra"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rewardio-core = { path = "../core" }
+async-trait = "0.1.86"
+
+[dev-dependencies]
+tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread"] }

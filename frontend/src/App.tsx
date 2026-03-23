@@ -6,8 +6,12 @@ function App() {
   useEffect(() => {
     fetch('/api/hello')
       .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((err) => setMessage('Error: ' + err))
+      .then((data) => {
+        setMessage(data.message)
+      })
+      .catch((err) => {
+        setMessage('Error: ' + err)
+      })
   }, [])
 
   return (

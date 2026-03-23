@@ -5,8 +5,11 @@ services:
       dockerfile: backend.Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - RUST_LOG=info
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./users.json:/app/users.json
 
   frontend:
     build: ./frontend

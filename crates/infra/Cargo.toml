@@ -1,11 +1,16 @@
 [package]
 name = "rewardio-infra"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 rewardio-core = { path = "../core" }
 async-trait = "0.1.86"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokio = { version = "1.49.0", features = ["full"] }
+tracing = "0.1"
 
 [dev-dependencies]
 tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread"] }
+tempfile = "3.17.1"

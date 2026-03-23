@@ -1,66 +1,25 @@
-use axum::{
-    routing::get,
-    Json, Router, extract::State,
-};
-use tower_http::cors::CorsLayer;
-use std::net::SocketAddr;
+use rewardio_api::logger;
+use rewardio_api::{App, AppState, Config};
+use rewardio_core::{AuthService, AuthServiceImpl, MessageService};
+use rewardio_infra::{HardcodedMessageService, JsonUserRepository};
 use std::sync::Arc;
-use rewardio_core::{Message, MessageService};
-use rewardio_infra::HardcodedMessageService;
 
 #[tokio::main]
-async fn main() {
-    let service = Arc::new(HardcodedMessageService) as Arc<dyn MessageService>;
-    let app = app(service);
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config = Config::from_env()?;
+    let _guards = logger::init_logger(&config);
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    println!("listening on {}", addr);
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
-}
+    let message_service = Arc::new(HardcodedMessageService) as Arc<dyn MessageService>;
+    let user_repo = Arc::new(JsonUserRepository::new(config.database_path.clone().into()));
+    let auth_service = Arc::new(AuthServiceImpl {
+        repository: user_repo,
+    }) as Arc<dyn AuthService>;
 
-pub fn app(service: Arc<dyn MessageService>) -> Router {
-    Router::new()
-        .route("/api/hello", get(hello))
-        .layer(CorsLayer::permissive())
-        .with_state(service)
-}
-
-async fn hello(
-    State(service): State<Arc<dyn MessageService>>,
-) -> Json<Message> {
-    Json(service.get_hello_message().await)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use axum::{
-        body::Body,
-        http::{Request, StatusCode},
+    let state = AppState {
+        message_service,
+        auth_service,
     };
-    use tower::ServiceExt;
-    use serde_json::Value;
 
-    #[tokio::test]
-    async fn test_hello_endpoint() {
-        let service = Arc::new(HardcodedMessageService) as Arc<dyn MessageService>;
-        let app = app(service);
-
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/api/hello")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::OK);
-
-        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
-        let body: Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(body, serde_json::json!({ "message": "Hello from Axum Workspace!" }));
-    }
+    let app = App::new(config, state);
+    app.run().await
 }

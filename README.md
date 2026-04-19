@@ -19,6 +19,12 @@ Ensure you have Docker and Docker Compose installed.
 1.  **Start the project:**
 
     ```bash
+    docker compose up
+    ```
+
+    If you need to rebuild images (for example, after Dockerfile/dependency changes):
+
+    ```bash
     docker compose up --build
     ```
 

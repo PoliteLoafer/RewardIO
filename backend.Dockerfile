@@ -1,10 +1,24 @@
-# Build stage
-FROM rust:1.94-slim as builder
+# Build tooling stage
+FROM rust:1.94-slim as chef
+
+WORKDIR /app
+RUN cargo install cargo-chef
+
+# Generate dependency recipe (changes only when Cargo manifests/lockfiles change)
+FROM chef as planner
 
 WORKDIR /app
 COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-# Build the specific api crate
+# Build dependencies and application using cache-friendly layers
+FROM chef as builder
+
+WORKDIR /app
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+COPY . .
 RUN cargo build --release -p rewardio-api
 
 # Final stage

@@ -14,8 +14,8 @@ WORKDIR /app
 # Create a non-root user
 RUN useradd -m -u 1000 appuser
 
-# Install ca-certificates for potential HTTPS requests
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates gosu && rm -rf /var/lib/apt/lists/*
 
 # Create logs directories and ensure they are writable by appuser
 RUN mkdir -p logs/back_logs logs/front_logs && \
@@ -26,7 +26,9 @@ RUN mkdir -p logs/back_logs logs/front_logs && \
 COPY --from=builder /app/target/release/rewardio-api /app/backend
 RUN chown appuser:appuser /app/backend
 
-USER appuser
+COPY scripts/docker/backend-entrypoint.sh /usr/local/bin/backend-entrypoint.sh
+RUN chmod +x /usr/local/bin/backend-entrypoint.sh
 
 EXPOSE 3000
+ENTRYPOINT ["/usr/local/bin/backend-entrypoint.sh"]
 CMD ["./backend"]

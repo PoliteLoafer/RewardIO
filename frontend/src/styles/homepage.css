@@ -1,0 +1,224 @@
+:root {
+  --font-main: 'Sora', 'Poppins', 'Segoe UI', sans-serif;
+}
+
+:root[data-theme='lavender'] {
+  --bg: #f3f3f7;
+  --heading: #6d24e8;
+  --muted: #e8aaaa;
+  --accent: #8d84ff;
+  --card: rgba(240, 244, 255, 0.22);
+  --button: #7f1ff5;
+  --button-text: #ffffff;
+  --button-border: #7f1ff5;
+}
+
+:root[data-theme='sunset'] {
+  --bg: #fff4eb;
+  --heading: #cf4f1e;
+  --muted: #b87e5d;
+  --accent: #ff915c;
+  --card: rgba(255, 247, 242, 0.22);
+  --button: #e55e2d;
+  --button-text: #ffffff;
+  --button-border: #e55e2d;
+}
+
+:root[data-theme='night'] {
+  --bg: #eaf0fa;
+  --heading: #2e3f93;
+  --muted: #6f83a5;
+  --accent: #556ccf;
+  --card: rgba(238, 244, 255, 0.22);
+  --button: #3950b4;
+  --button-text: #ffffff;
+  --button-border: #3950b4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-main);
+  background: radial-gradient(circle at 18% 15%, color-mix(in srgb, var(--accent), #ffffff 72%), transparent 36%),
+    radial-gradient(circle at 82% 30%, color-mix(in srgb, var(--accent), #ffffff 78%), transparent 42%),
+    var(--bg);
+  color: #1c1c25;
+}
+
+.home-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 2rem 3rem;
+}
+
+.home-header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.logo {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--heading), #8ca7ff 28%);
+}
+
+.header-actions,
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.hero-card {
+  position: relative;
+  z-index: 3;
+  width: min(100%, 760px);
+  margin: clamp(5rem, 16vh, 11rem) auto 0;
+  background: var(--card);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 20px 48px rgba(30, 34, 73, 0.025),
+    inset 0 1px 0 rgba(255, 255, 255, 0.005);
+  backdrop-filter: blur(5px) saturate(10%);
+  -webkit-backdrop-filter: blur(5px) saturate(10%);
+  overflow: hidden;
+  padding: clamp(1.6rem, 3.5vw, 3rem);
+}
+
+.hero-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.003);
+  pointer-events: none;
+}
+
+.hero-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-card h2 {
+  margin: 0;
+  color: var(--heading);
+  font-size: clamp(2.1rem, 6vw, 3.8rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+.hero-card p {
+  margin: 0.8rem 0 1.8rem;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.7vw, 1.65rem);
+}
+
+.btn {
+  border: 1.5px solid var(--button-border);
+  border-radius: 0.75rem;
+  padding: 0.62rem 1.02rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--button);
+  color: var(--button-text);
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--button), black 70%);
+}
+
+.btn-outline {
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--button);
+}
+
+.cloud-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.cloud {
+  position: absolute;
+  left: -38vw;
+  max-width: 62vw;
+  height: auto;
+  animation-name: drift-x;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes drift-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(172vw);
+  }
+}
+
+@media (max-width: 1024px) {
+  .home-page {
+    padding: 1.5rem 1.5rem 2.5rem;
+  }
+
+  .home-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hero-card {
+    margin-top: 4.6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-page {
+    padding: 1.1rem;
+  }
+
+  .header-actions {
+    gap: 0.5rem;
+  }
+
+  .btn {
+    padding: 0.56rem 0.9rem;
+    font-size: 0.94rem;
+  }
+
+  .hero-card {
+    margin-top: 3.6rem;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud,
+  .btn {
+    animation: none;
+    transition: none;
+  }
+}

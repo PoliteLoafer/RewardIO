@@ -1,5 +1,7 @@
+use crate::errors::InfraError;
 use async_trait::async_trait;
-use rewardio_core::{RepositoryError, User, UserRepository};
+use rewardio_core::{RepositoryError, User, UserRepository, UserRole};
+use sqlx::PgPool;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs::{File, OpenOptions};
@@ -8,7 +10,6 @@ use tokio::sync::Mutex;
 
 pub struct JsonUserRepository {
     file_path: PathBuf,
-    // Using a Mutex to handle concurrent access to the JSON file
     lock: Arc<Mutex<()>>,
 }
 
@@ -27,12 +28,12 @@ impl JsonUserRepository {
 
         let mut file = File::open(&self.file_path).await.map_err(|e| {
             tracing::error!("Failed to open users file: {}", e);
-            RepositoryError::Infrastructure(e.to_string())
+            RepositoryError::from(InfraError::from(e))
         })?;
         let mut contents = String::new();
         file.read_to_string(&mut contents).await.map_err(|e| {
             tracing::error!("Failed to read users file: {}", e);
-            RepositoryError::Infrastructure(e.to_string())
+            RepositoryError::from(InfraError::from(e))
         })?;
 
         if contents.trim().is_empty() {
@@ -41,14 +42,14 @@ impl JsonUserRepository {
 
         serde_json::from_str(&contents).map_err(|e| {
             tracing::error!("Failed to parse users JSON: {}", e);
-            RepositoryError::Infrastructure(e.to_string())
+            RepositoryError::from(InfraError::from(e))
         })
     }
 
     async fn save_users(&self, users: &[User]) -> Result<(), RepositoryError> {
         let contents = serde_json::to_string_pretty(users).map_err(|e| {
             tracing::error!("Failed to serialize users to JSON: {}", e);
-            RepositoryError::Infrastructure(e.to_string())
+            RepositoryError::from(InfraError::from(e))
         })?;
         let mut file = OpenOptions::new()
             .write(true)
@@ -58,18 +59,104 @@ impl JsonUserRepository {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to open users file for writing: {}", e);
-                RepositoryError::Infrastructure(e.to_string())
+                RepositoryError::from(InfraError::from(e))
             })?;
 
         file.write_all(contents.as_bytes()).await.map_err(|e| {
             tracing::error!("Failed to write users to file: {}", e);
-            RepositoryError::Infrastructure(e.to_string())
+            RepositoryError::from(InfraError::from(e))
         })?;
 
         file.sync_all().await.map_err(|e| {
             tracing::error!("Failed to sync users file: {}", e);
-            RepositoryError::Infrastructure(e.to_string())
+            RepositoryError::from(InfraError::from(e))
         })?;
+
+        Ok(())
+    }
+}
+
+pub struct PostgresUserRepository {
+    pool: Arc<PgPool>,
+}
+
+impl PostgresUserRepository {
+    pub fn new(pool: Arc<PgPool>) -> Self {
+        Self { pool }
+    }
+
+    fn map_sqlx_error(error: sqlx::Error) -> RepositoryError {
+        if let sqlx::Error::Database(db_error) = &error {
+            if db_error.code().as_deref() == Some("23505") {
+                return RepositoryError::Conflict(
+                    "user with same login or email already exists".to_string(),
+                );
+            }
+        }
+
+        RepositoryError::from(InfraError::from(error))
+    }
+
+    fn role_to_db(role: &UserRole) -> &'static str {
+        match role {
+            UserRole::Admin => "admin",
+            UserRole::User => "user",
+        }
+    }
+
+    fn role_from_db(role: &str) -> Result<UserRole, RepositoryError> {
+        match role {
+            "admin" => Ok(UserRole::Admin),
+            "user" => Ok(UserRole::User),
+            other => Err(RepositoryError::from(InfraError::DataMapping(format!(
+                "unsupported user role value: {other}"
+            )))),
+        }
+    }
+}
+
+#[async_trait]
+impl UserRepository for PostgresUserRepository {
+    async fn find_by_login(&self, login: &str) -> Result<Option<User>, RepositoryError> {
+        let row = sqlx::query_as::<_, (String, String, String, String, String)>(
+            "SELECT login, password, name, email, role FROM users WHERE login = $1",
+        )
+        .bind(login)
+        .fetch_optional(self.pool.as_ref())
+        .await
+        .map_err(Self::map_sqlx_error)?;
+
+        match row {
+            Some((login, password, name, email, role)) => Ok(Some(User {
+                login,
+                password,
+                name,
+                email,
+                role: Self::role_from_db(&role)?,
+            })),
+            None => Ok(None),
+        }
+    }
+
+    async fn save(&self, user: User) -> Result<(), RepositoryError> {
+        sqlx::query(
+            "INSERT INTO users (login, password, name, email, role)
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (login)
+             DO UPDATE SET
+               password = EXCLUDED.password,
+               name = EXCLUDED.name,
+               email = EXCLUDED.email,
+               role = EXCLUDED.role",
+        )
+        .bind(user.login)
+        .bind(user.password)
+        .bind(user.name)
+        .bind(user.email)
+        .bind(Self::role_to_db(&user.role))
+        .execute(self.pool.as_ref())
+        .await
+        .map_err(Self::map_sqlx_error)?;
 
         Ok(())
     }

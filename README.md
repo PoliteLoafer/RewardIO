@@ -64,3 +64,47 @@ docker compose run --rm backend cargo test
 ```
 
 The frontend is configured to proxy `/api` requests to the backend service.
+
+## Database Migrations (SQLx)
+
+Migrations for the backend API are stored in `crates/api/migrations` and use SQLx reversible files:
+
+- `*.up.sql` — apply migration
+- `*.down.sql` — rollback migration
+
+Current migrations:
+
+- `20231027120000_create_users_and_roles`
+- `20260515141300_create_hello_messages`
+
+### Prerequisites
+
+1. Ensure Postgres is running (for local setup, via Docker Compose):
+
+```bash
+docker compose up -d postgres
+```
+
+2. Install SQLx CLI (once):
+
+```bash
+cargo install sqlx-cli --no-default-features --features rustls,postgres
+```
+
+### Apply migrations
+
+```bash
+sqlx migrate run --source crates/api/migrations --database-url postgres://rewardio:rewardio@localhost:5432/rewardio
+```
+
+### Rollback the latest migration
+
+```bash
+sqlx migrate revert --source crates/api/migrations --database-url postgres://rewardio:rewardio@localhost:5432/rewardio
+```
+
+### Check migration status
+
+```bash
+sqlx migrate info --source crates/api/migrations --database-url postgres://rewardio:rewardio@localhost:5432/rewardio
+```

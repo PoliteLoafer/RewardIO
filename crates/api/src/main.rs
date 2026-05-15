@@ -3,6 +3,7 @@ use rewardio_api::{App, AppState, Config};
 use rewardio_core::{AuthService, AuthServiceImpl, MessageService};
 use rewardio_infra::{HardcodedMessageService, JsonUserRepository};
 use std::sync::Arc;
+use tracing::error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,5 +22,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let app = App::new(config, state);
-    app.run().await
+    if let Err(e) = app.run().await {
+        error!("Application error: {:?}", e);
+        return Err(e);
+    }
+
+    Ok(())
 }

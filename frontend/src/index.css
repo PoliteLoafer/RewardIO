@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  --font-main: 'Sora', 'Poppins', 'Segoe UI', sans-serif;
+}
+
+:root[data-theme='lavender'] {
+  --bg: #f3f3f7;
+  --heading: #6d24e8;
+  --muted: #e8aaaa;
+  --accent: #8d84ff;
+  --card: rgba(240, 244, 255, 0.22);
+  --button: #7f1ff5;
+  --button-text: #ffffff;
+  --button-border: #7f1ff5;
+}
+
+:root[data-theme='sunset'] {
+  --bg: #fff4eb;
+  --heading: #cf4f1e;
+  --muted: #b87e5d;
+  --accent: #ff915c;
+  --card: rgba(255, 247, 242, 0.22);
+  --button: #e55e2d;
+  --button-text: #ffffff;
+  --button-border: #e55e2d;
+}
+
+:root[data-theme='night'] {
+  --bg: #eaf0fa;
+  --heading: #2e3f93;
+  --muted: #6f83a5;
+  --accent: #556ccf;
+  --card: rgba(238, 244, 255, 0.22);
+  --button: #3950b4;
+  --button-text: #ffffff;
+  --button-border: #3950b4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-main);
+  background: radial-gradient(circle at 18% 15%, color-mix(in srgb, var(--accent), #ffffff 72%), transparent 36%),
+    radial-gradient(circle at 82% 30%, color-mix(in srgb, var(--accent), #ffffff 78%), transparent 42%),
+    var(--bg);
+  color: #1c1c25;
+}
+
+.home-logo {
+  @apply m-0 leading-none font-extrabold opacity-70;
+  font-size: clamp(2rem, 3vw, 3rem);
+  letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--heading), white 42%);
+}
+
+.hero-title {
+  @apply m-0 font-extrabold;
+  font-size: clamp(2.1rem, 6vw, 3.8rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: color-mix(in srgb, var(--heading), white 24%);
+}
+
+.hero-text {
+  margin: 0.8rem auto 1.8rem;
+  font-size: clamp(1rem, 1.7vw, 1.65rem);
+  color: color-mix(in srgb, var(--muted), white 18%);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .hero-text {
+    white-space: normal;
+  }
+}

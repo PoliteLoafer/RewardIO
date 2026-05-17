@@ -1,9 +1,17 @@
 export type ThemeName = 'lavender' | 'sunset' | 'night'
 
+export type CloudPalette = {
+  start: string
+  middle: string
+  end: string
+  smallOpacity: number
+  largeOpacity: number
+  shadowOpacity: number
+}
+
 type ThemeConfig = {
   label: string
-  cloudSrc: string
-  largeCloudSrc: string
+  cloud: CloudPalette
   colors: {
     background: string
     heading: string
@@ -19,8 +27,14 @@ type ThemeConfig = {
 export const themes: Record<ThemeName, ThemeConfig> = {
   lavender: {
     label: 'Lavender Sky',
-    cloudSrc: '/clouds/lavender.svg',
-    largeCloudSrc: '/clouds/lavender-large.svg',
+    cloud: {
+      start: '#7F75E9',
+      middle: '#D9EDF6',
+      end: '#FFFFFF',
+      smallOpacity: 0.78,
+      largeOpacity: 0.5,
+      shadowOpacity: 0.25,
+    },
     colors: {
       background: '#f3f3f7',
       heading: '#6d24e8',
@@ -34,8 +48,14 @@ export const themes: Record<ThemeName, ThemeConfig> = {
   },
   sunset: {
     label: 'Sunset Peach',
-    cloudSrc: '/clouds/sunset.svg',
-    largeCloudSrc: '/clouds/sunset-large.svg',
+    cloud: {
+      start: '#FF8A5B',
+      middle: '#FFE2C7',
+      end: '#FFF6EE',
+      smallOpacity: 0.78,
+      largeOpacity: 0.5,
+      shadowOpacity: 0.25,
+    },
     colors: {
       background: '#fff4eb',
       heading: '#cf4f1e',
@@ -49,8 +69,14 @@ export const themes: Record<ThemeName, ThemeConfig> = {
   },
   night: {
     label: 'Blue Night',
-    cloudSrc: '/clouds/night.svg',
-    largeCloudSrc: '/clouds/night-large.svg',
+    cloud: {
+      start: '#4B5AC9',
+      middle: '#8EB8DD',
+      end: '#D7E8F4',
+      smallOpacity: 0.85,
+      largeOpacity: 0.52,
+      shadowOpacity: 0.4,
+    },
     colors: {
       background: '#eaf0fa',
       heading: '#2e3f93',

@@ -1,7 +1,7 @@
 use axum::{
     Router,
     body::Body,
-    http::{Request, StatusCode},
+    http::{Request, StatusCode, header},
     response::Response,
 };
 use async_trait::async_trait;
@@ -34,6 +34,11 @@ async fn test_signup_and_signin_flow() {
     let state = AppState {
         message_service,
         auth_service,
+        session_manager: Arc::new(rewardio_api::auth::session::SessionManager::new(
+            "test-secret",
+            3600,
+            false,
+        )),
     };
     let app: Router = App::router_from_state(state);
 
@@ -80,6 +85,12 @@ async fn test_signup_and_signin_flow() {
         .unwrap() as Response;
 
     assert_eq!(response.status(), StatusCode::OK);
+    let signin_cookie = response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .expect("signin should set auth cookie")
+        .to_string();
 
     let body = axum::body::to_bytes(response.into_body(), usize::MAX)
         .await
@@ -87,7 +98,76 @@ async fn test_signup_and_signin_flow() {
     let body: Value = serde_json::from_slice(&body).unwrap();
     assert_eq!(body["login"], "testuser");
 
-    // 3. Signin with invalid password
+    // 3. Authorized user endpoint
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/me")
+                .header("Cookie", signin_cookie.clone())
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap() as Response;
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    // 4. Logout and verify protected endpoint access is revoked
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/logout")
+                .header("Cookie", &signin_cookie)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap() as Response;
+
+    assert_eq!(response.status(), StatusCode::NO_CONTENT);
+    let logout_cookie = response
+        .headers()
+        .get(header::SET_COOKIE)
+        .and_then(|value| value.to_str().ok())
+        .expect("logout should clear auth cookie")
+        .to_string();
+    assert!(logout_cookie.contains("rewardio_auth=;"));
+    assert!(logout_cookie.contains("Max-Age=0"));
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/me")
+                .header("Cookie", signin_cookie)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap() as Response;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/api/me")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap() as Response;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+
+    // 5. Signin with invalid password
     let signin_invalid_payload = serde_json::json!({
         "login": "testuser",
         "password": "wrongpassword"
@@ -113,7 +193,7 @@ async fn test_signup_and_signin_flow() {
     let body: Value = serde_json::from_slice(&body).unwrap();
     assert_eq!(body["error"], "Invalid password");
 
-    // 4. Signin with non-existent user
+    // 6. Signin with non-existent user
     let signin_notfound_payload = serde_json::json!({
         "login": "nonexistent",
         "password": "password123"
@@ -153,6 +233,11 @@ async fn test_hello_endpoint() {
     let state = AppState {
         message_service,
         auth_service,
+        session_manager: Arc::new(rewardio_api::auth::session::SessionManager::new(
+            "test-secret",
+            3600,
+            false,
+        )),
     };
     let app: Router = App::router_from_state(state);
 

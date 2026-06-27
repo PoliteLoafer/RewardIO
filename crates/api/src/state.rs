@@ -1,3 +1,4 @@
+use crate::auth::session::SessionManager;
 use rewardio_core::{AuthService, MessageService};
 use std::sync::Arc;
 
@@ -5,4 +6,5 @@ use std::sync::Arc;
 pub struct AppState {
     pub message_service: Arc<dyn MessageService>,
     pub auth_service: Arc<dyn AuthService>,
+    pub session_manager: Arc<SessionManager>,
 }

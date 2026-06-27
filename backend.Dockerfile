@@ -38,7 +38,9 @@ RUN mkdir -p logs/back_logs logs/front_logs && \
 
 # Copy the binary from the workspace target directory
 COPY --from=builder /app/target/release/rewardio-api /app/backend
+COPY --from=builder /app/crates/api/migrations /app/migrations
 RUN chown appuser:appuser /app/backend
+RUN chown -R appuser:appuser /app/migrations
 
 COPY scripts/docker/backend-entrypoint.sh /usr/local/bin/backend-entrypoint.sh
 RUN chmod +x /usr/local/bin/backend-entrypoint.sh

@@ -2,6 +2,12 @@
 pub enum RepositoryError {
     #[error("Infrastructure error: {0}")]
     Infrastructure(String),
+    #[error("Not found: {0}")]
+    NotFound(String),
+    #[error("Conflict: {0}")]
+    Conflict(String),
+    #[error("Validation error: {0}")]
+    Validation(String),
 }
 
 #[derive(Debug, thiserror::Error, PartialEq)]

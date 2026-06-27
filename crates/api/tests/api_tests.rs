@@ -4,16 +4,28 @@ use axum::{
     http::{Request, StatusCode},
     response::Response,
 };
+use async_trait::async_trait;
 use rewardio_api::{App, AppState};
-use rewardio_core::{AuthService, AuthServiceImpl, MessageService};
-use rewardio_infra::{HardcodedMessageService, JsonUserRepository};
+use rewardio_core::{AuthService, AuthServiceImpl, Message, MessageService, RepositoryError};
+use rewardio_infra::JsonUserRepository;
 use serde_json::Value;
 use std::sync::Arc;
 use tower::ServiceExt;
 
+struct TestMessageService;
+
+#[async_trait]
+impl MessageService for TestMessageService {
+    async fn get_hello_message(&self) -> Result<Message, RepositoryError> {
+        Ok(Message {
+            message: "Hello from Axum Workspace!".to_string(),
+        })
+    }
+}
+
 #[tokio::test]
 async fn test_signup_and_signin_flow() {
-    let message_service = Arc::new(HardcodedMessageService) as Arc<dyn MessageService>;
+    let message_service = Arc::new(TestMessageService) as Arc<dyn MessageService>;
     let user_repo = Arc::new(JsonUserRepository::new("test_api_users.json".into()));
     let auth_service = Arc::new(AuthServiceImpl {
         repository: user_repo,
@@ -132,7 +144,7 @@ async fn test_signup_and_signin_flow() {
 
 #[tokio::test]
 async fn test_hello_endpoint() {
-    let message_service = Arc::new(HardcodedMessageService) as Arc<dyn MessageService>;
+    let message_service = Arc::new(TestMessageService) as Arc<dyn MessageService>;
     let user_repo = Arc::new(JsonUserRepository::new("test_hello_users.json".into()));
     let auth_service = Arc::new(AuthServiceImpl {
         repository: user_repo,

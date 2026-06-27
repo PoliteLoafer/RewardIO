@@ -175,12 +175,19 @@ mod tests {
     #[test]
     fn test_init_logger_no_panic() {
         let config = Config {
+            app_env: "development".to_string(),
             server_port: 3000,
             log_level: "info".to_string(),
             log_to_file: false,
             log_to_console: true,
             log_dir: "logs/back_logs".to_string(),
-            database_path: "users.json".to_string(),
+            postgres_url: "postgres://rewardio:rewardio@localhost:5432/rewardio".to_string(),
+            db_connect_max_retries: 10,
+            db_connect_retry_delay_secs: 2,
+            db_acquire_timeout_secs: 5,
+            db_max_connections: 5,
+            cors_allowed_origins: vec!["http://localhost:5173".to_string()],
+            cors_allowed_methods: vec!["GET".to_string(), "POST".to_string(), "OPTIONS".to_string()],
         };
 
         let _guards = init_logger(&config);

@@ -34,6 +34,8 @@ Do not scan the whole repository if the task is scoped to one module.
 ## 4) Validation rules
 
 - Rust backend changes:
+  - every new feature must include tests that validate real behavior and real use cases
+  - tests must assert outcomes (status/body/state/side effects), not just execute code for coverage percentage
   - run targeted crate tests first: `cargo test -p rewardio-api` (or affected crate)
   - run wider tests only when risk/scope requires it
 - Migration changes:

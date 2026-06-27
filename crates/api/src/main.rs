@@ -1,5 +1,6 @@
 use rewardio_api::logger;
 use rewardio_api::{App, AppState, Config};
+use rewardio_api::auth::session::SessionManager;
 use rewardio_core::{AuthService, AuthServiceImpl, MessageService};
 use rewardio_infra::{DbMessageService, PostgresHelloRepository, PostgresUserRepository};
 use sqlx::migrate::Migrator;
@@ -70,6 +71,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = AppState {
         message_service,
         auth_service,
+        session_manager: Arc::new(SessionManager::new(
+            &config.auth_secret,
+            config.auth_session_ttl_secs,
+            config.auth_cookie_secure,
+        )),
     };
 
     let app = App::new(config, state);

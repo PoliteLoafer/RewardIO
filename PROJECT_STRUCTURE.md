@@ -50,6 +50,7 @@ Use it as the first context source before opening many files.
 - Full backend tests: `cargo test -p rewardio-api`
 - Workspace tests: `cargo test`
 - App-level route tests are in `crates/api/src/app.rs` (`#[cfg(test)]` module)
+- Rule for new features: add meaningful tests that verify real scenarios and observable outcomes (API status/body, state changes, side effects), not coverage-only execution.
 
 ## Migration workflow
 

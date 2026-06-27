@@ -65,6 +65,13 @@ docker compose run --rm backend cargo test
 
 The frontend is configured to proxy `/api` requests to the backend service.
 
+## AI Collaboration Docs
+
+To improve consistency, quality, and token efficiency when working with AI agents, use:
+
+- `PROJECT_STRUCTURE.md` — concise project map and navigation guide.
+- `AI_WORKFLOW_RULES.md` — implementation/validation guardrails and AI best practices.
+
 ## Database Migrations (SQLx)
 
 Migrations for the backend API are stored in `crates/api/migrations` and use SQLx reversible files:
